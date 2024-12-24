@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "rgbmultitool"
+version = "0.1.0"
+description = "Utility drawing elements for RGB screens"
+authors = ["chris@chrisgill.net"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pillow = "^11.0.0"
+pint = "^0.24.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
