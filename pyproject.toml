@@ -1,16 +1,34 @@
-[tool.poetry]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
 name = "rgbmultitool"
-version = "0.1.0"
+version = "0.1.1a0"
 description = "Utility drawing elements for RGB screens"
-authors = ["chris@chrisgill.net"]
+authors = [{name="Chris Gill", email="chris@chrisgill.net"}]
 readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pillow~=11.0.0",
+    "pint~=0.24.4",
+    # Replace once published
+    "rgbmatrix@git+https://github.com/chrisgilldc/rpi-rgb-led-matrix"
+]
+
+
+[project.urls]
+Homepage = "https://github.com/chrisgilldc/rgbmultitool"
+Issues = "https://github.com/chrisgilldc/rgbmultitool/issues"
+
+
 
 [tool.poetry.dependencies]
-python = "^3.11"
-pillow = "^11.0.0"
-pint = "^0.24.4"
 
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.poetry.group.test.dependencies]
+imagehash = "^4.3.1"
+pytest = "^8.3.4"
+
+[tool.pytest.ini_options]
+pythonpath = "."
