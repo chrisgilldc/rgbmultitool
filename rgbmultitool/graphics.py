@@ -3,6 +3,72 @@ Draw various graphics
 """
 
 from PIL import Image, ImageDraw
+import math
+
+def icon_battery(charge_state,
+                 width=13, height=5,
+                 border="white",
+                 batt_warn=50,
+                 batt_crit=30,
+                 color_ok="green",
+                 color_warn="yellow",
+                 color_crit="red"):
+    """
+    Draw a battery icon with a given charge level.
+
+    :param charge_state: Charge state of the battery, between 0 and 100.
+    :type charge_state: int
+    :param width: Total width of the icon. Note that the internal
+    :type width: int
+    :param height: Total height of the icon.
+    :type width: int
+    :param border: Color of the border. Defaults to white.
+    :type border: str
+    :param batt_warn: If charge state is below this level but above the 'batt_crit' level, battery will be colored 'color_warn'. If above this level, it will be colored 'color_ok'.
+    :type batt_warn: int
+    :param batt_crit: If charge state is at or below this level, battery will be colored 'color_crit'.
+    :type batt_crit: int
+    :param color_ok: Color to use when battery is okay. Defaults to green.
+    :type color_ok: str
+    :param color_warn: Color to use when battery is in warning. Defaults to yellow.
+    :type color_warn: str
+    :param color_crit: Color to use when battery is in critical. Defaults to red.
+    :type color_crit: str
+    :return:
+    """
+
+    if not isinstance(charge_state, int):
+        raise TypeError("charge_state must be an integer!")
+    elif charge_state > 100 or charge_state < 0:
+        raise ValueError("charge_state must be between 0 and 100")
+
+    # Set up the canvas.
+    img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+
+    # Draw the frame
+    draw.rectangle([0,0,width-2,height-1], width=1, outline=border)
+    # Make the bump_in dynamic based on how high we are overall.
+    if height <= 5:
+        bump = 1
+    else:
+        bump = 2
+    draw.line([width-1, bump, width-1, height-bump-1], width=1, fill=border)
+
+    # Determine color for the fill
+    if charge_state >= batt_warn:
+        batt_color = color_ok
+    elif charge_state <= batt_crit:
+        batt_color = color_crit
+    else:
+        batt_color = color_warn
+
+    # How filled should we be?
+    if charge_state > 0:
+        available_pixels = width - 3
+        charge_pixels = math.ceil(available_pixels * (charge_state/100))
+        draw.rectangle([1,1,charge_pixels,height-2], fill=batt_color)
+    return img
 
 def icon_network(net_status, mqtt_status):
     """
