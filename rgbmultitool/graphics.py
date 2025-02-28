@@ -7,7 +7,7 @@ import math
 
 def icon_battery(charge_state,
                  width=13, height=5,
-                 border="white",
+                 color_border="white",
                  batt_warn=50,
                  batt_crit=30,
                  color_ok="green",
@@ -22,8 +22,8 @@ def icon_battery(charge_state,
     :type width: int
     :param height: Total height of the icon.
     :type width: int
-    :param border: Color of the border. Defaults to white.
-    :type border: str
+    :param color_border: Color of the border. Defaults to white.
+    :type color_border: str
     :param batt_warn: If charge state is below this level but above the 'batt_crit' level, battery will be colored 'color_warn'. If above this level, it will be colored 'color_ok'.
     :type batt_warn: int
     :param batt_crit: If charge state is at or below this level, battery will be colored 'color_crit'.
@@ -47,13 +47,13 @@ def icon_battery(charge_state,
     draw = ImageDraw.Draw(img)
 
     # Draw the frame
-    draw.rectangle([0,0,width-2,height-1], width=1, outline=border)
+    draw.rectangle([0,0,width-2,height-1], width=1, outline=color_border)
     # Make the bump_in dynamic based on how high we are overall.
     if height <= 5:
         bump = 1
     else:
         bump = 2
-    draw.line([width-1, bump, width-1, height-bump-1], width=1, fill=border)
+    draw.line([width-1, bump, width-1, height-bump-1], width=1, fill=color_border)
 
     # Determine color for the fill
     if charge_state >= batt_warn:
@@ -69,6 +69,53 @@ def icon_battery(charge_state,
         charge_pixels = math.ceil(available_pixels * (charge_state/100))
         draw.rectangle([1,1,charge_pixels,height-2], fill=batt_color)
     return img
+
+def icon_evplug(plugged_in=False,
+                charging=False,
+                width=6, height=6,
+                color_border="white", color_car="red", color_charge="yellow",
+                charge_flash_rate=50):
+
+    # Make sure we're square.
+    if width > height:
+        height = width
+    elif height > width:
+        width = height
+
+    # Set up the canvas
+    img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+
+    # Draw a rectangle to represent the car.
+    draw.rectangle((0, 0, width, 1), fill=color_car, outline=color_car)
+    if plugged_in:
+        draw.line((0, 2, width - 1, 2), fill=color_border)
+        draw.line((0,2,0,height-2), fill=color_border)
+        draw.line((1, height-1, width-2, height-1), fill=color_border)
+        draw.line((width-1, 2, width-1, height-2), fill=color_border)
+        if charging:
+            # If charging, draw the lightning bolt overlay.
+            draw.line((width-2,0,2,height/2), fill=color_charge)
+            draw.line((2,height/2,width-2,height/2), fill=color_charge)
+            draw.line((width-2,height/2,2,height-1),fill=color_charge)
+
+    else:
+        # Draw the plug base.
+        draw.line( (0,4,width-1,4), fill=color_border)
+        # Draw the prongs
+        draw.line((1, 3, 1, 4), fill=color_border )
+        draw.line((width - 2, 3, width - 2, 4), fill=color_border)
+        # Draw the body
+        draw.line((0,4,0,height-1), fill=color_border)
+        draw.line((1, height-1, width-2, height-1), fill=color_border)
+        draw.line((width-1, 4, width-1, height-1), fill=color_border)
+
+    return img
+
+
+
+
+
 
 def icon_network(net_status, mqtt_status):
     """
