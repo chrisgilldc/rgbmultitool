@@ -8,6 +8,7 @@ import math
 def icon_battery(charge_state,
                  width=13, height=5,
                  color_border="white",
+                 style="bar",
                  batt_warn=50,
                  batt_crit=30,
                  color_ok="green",
@@ -16,7 +17,7 @@ def icon_battery(charge_state,
     """
     Draw a battery icon with a given charge level.
 
-    :param charge_state: Charge state of the battery, between 0 and 100.
+    :param charge_state: Charge state of the battery, between 0 and 100. May be 'None' if the charge state is unknown.
     :type charge_state: int
     :param width: Total width of the icon. Note that the internal
     :type width: int
@@ -24,6 +25,8 @@ def icon_battery(charge_state,
     :type width: int
     :param color_border: Color of the border. Defaults to white.
     :type color_border: str
+    :param style: Fill style. Can be 'bars' or 'pixel'
+    :type style: str
     :param batt_warn: If charge state is below this level but above the 'batt_crit' level, battery will be colored 'color_warn'. If above this level, it will be colored 'color_ok'.
     :type batt_warn: int
     :param batt_crit: If charge state is at or below this level, battery will be colored 'color_crit'.
@@ -36,11 +39,15 @@ def icon_battery(charge_state,
     :type color_crit: str
     :return:
     """
+    # Input checks
+    if not isinstance(charge_state, float) and not isinstance(charge_state, int) and charge_state is not None:
+        raise TypeError("charge_state must be an integer or None!")
+    elif charge_state is not None:
+        if charge_state > 100 or charge_state < 0:
+            raise ValueError("charge_state must be between 0 and 100 when not None")
 
-    if not isinstance(charge_state, int):
-        raise TypeError("charge_state must be an integer!")
-    elif charge_state > 100 or charge_state < 0:
-        raise ValueError("charge_state must be between 0 and 100")
+    if style.lower() not in ['bar','pixel']:
+        raise ValueError("style must be 'bar' or 'pixel'")
 
     # Set up the canvas.
     img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
@@ -55,19 +62,23 @@ def icon_battery(charge_state,
         bump = 2
     draw.line([width-1, bump, width-1, height-bump-1], width=1, fill=color_border)
 
-    # Determine color for the fill
-    if charge_state >= batt_warn:
-        batt_color = color_ok
-    elif charge_state <= batt_crit:
-        batt_color = color_crit
+    # Determine the fill
+    if charge_state is None:
+        draw.rectangle([1,1,width-3,height-2], width=1, fill="grey")
     else:
-        batt_color = color_warn
+        # Determine color for the fill
+        if charge_state >= batt_warn:
+            batt_color = color_ok
+        elif charge_state <= batt_crit:
+            batt_color = color_crit
+        else:
+            batt_color = color_warn
 
-    # How filled should we be?
-    if charge_state > 0:
-        available_pixels = width - 3
-        charge_pixels = math.ceil(available_pixels * (charge_state/100))
-        draw.rectangle([1,1,charge_pixels,height-2], fill=batt_color)
+        # How filled should we be?
+        if charge_state > 0:
+            available_pixels = width - 3
+            charge_pixels = math.ceil(available_pixels * (charge_state/100))
+            draw.rectangle([1,1,charge_pixels,height-2], fill=batt_color)
     return img
 
 def icon_evplug(plugged_in=False,
@@ -75,6 +86,29 @@ def icon_evplug(plugged_in=False,
                 width=6, height=6,
                 color_border="white", color_car="red", color_charge="yellow",
                 charge_flash_rate=50):
+    """
+
+    :param plugged_in: Is the vehicle plugged in? If charging is True, this is inferred True no matter what.
+    :type plugged_in: bool or None
+    :param charging: Is the vehicle charging?
+    :type charging: bool or None
+    :param width: Width of the icon
+    :type width: int
+    :param height: Height of the icon
+    :type height: int
+    :param color_border: Color for the border of the plug.
+    :type color_border: str
+    :param color_car: Color for the car.
+    :type color_car: str
+    :param color_charge: Color for the charging symbol.
+    :type color_charge: str
+    :param charge_flash_rate:
+    :return:
+    """
+
+    # Infer plugged_in true if charging is true.
+    if charging:
+        plugged_in = True
 
     # Make sure we're square.
     if width > height:
@@ -111,11 +145,6 @@ def icon_evplug(plugged_in=False,
         draw.line((width-1, 4, width-1, height-1), fill=color_border)
 
     return img
-
-
-
-
-
 
 def icon_network(net_status, mqtt_status):
     """
